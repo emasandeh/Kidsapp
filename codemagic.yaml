@@ -1,0 +1,37 @@
+workflows:
+  ios-workflow:
+    name: iOS Build (Kidsapp)
+    max_build_duration: 60
+    environment:
+      node: latest
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Install dependencies
+        script: npm install
+
+      - name: Expo prebuild (if needed)
+        script: npx expo prebuild
+
+      - name: Install pods
+        script: |
+          cd ios
+          pod install
+          cd ..
+
+      - name: Build iOS
+        script: |
+          xcodebuild -workspace ios/*.xcworkspace \
+          -scheme Kidsapp \
+          -configuration Release \
+          -archivePath $CM_BUILD_DIR/build/Kidsapp.xcarchive \
+          archive
+
+    artifacts:
+      - build/**/ipa/*.ipa
+      - build/**/*.xcarchive
+
+    publishing:
+      email:
+        recipients:
+          - your-email@example.com
