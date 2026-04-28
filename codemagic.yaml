@@ -7,16 +7,15 @@ workflows:
       flutter: stable
       xcode: latest
       groups:
-        - apple_credentials   Codemagic
+        - apple_credentials
       vars:
         XCODE_SCHEME: "Runner"
-        BUNDLE_ID: "com.emasandeh.kidsapp" 
+        BUNDLE_ID: "com.emasandeh.kidsapp"
 
     scripts:
       - name: Set up keychain and fetch signing files
         script: |
           keychain initialize
-          # سيقوم هذا الأمر بجلب الشهادات تلقائياً إذا كنت قد ربطت Apple Developer Portal
           app-store-connect fetch-signing-files "$BUNDLE_ID" --type IOS_APP_ADHOC --create
           keychain add-certificates
       
@@ -30,15 +29,13 @@ workflows:
 
       - name: Build IPA
         script: |
-        
           flutter build ipa --release --export-method ad-hoc --build-name=1.0.0 --build-number=1
 
     artifacts:
-     
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
 
     publishing:
       email:
         recipients:
-          - emasandeh@gmail.com 
+          - emasandeh@gmail.com
