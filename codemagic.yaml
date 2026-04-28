@@ -1,37 +1,44 @@
 # Kidsapp Codemagic Configuration
-workflow-definition:
-  name: Kidsapp iOS Build
-  max_build_duration: 60
-  instance_type: mac_mini_m1
-  environment:
-    groups:
-      # This is where you store your encrypted Apple credentials
-      - apple_credentials 
-    vars:
-      XCODE_WORKSPACE: "ios/Runner.xcworkspace"
-      XCODE_SCHEME: "Runner"
-    flutter: stable
-    xcode: latest
-    cocoapods: default
+# Reference: emasandeh/Kidsapp
 
-  scripts:
-    - name: Get Flutter packages
-      script: |
-        flutter pub get
-    - name: Install CocoaPods
-      script: |
-        find . -name "Podfile" -execdir pod install \;
-    - name: Flutter build ipa
-      script: |
-        # The --release and --no-codesign/build-name flags are crucial
-        flutter build ipa --release --export-method ad-hoc
-        
-  artifacts:
-    # This tells Codemagic to look for the .ipa file and make it available for download
-    - build/ios/ipa/*.ipa
-    - /tmp/xcodebuild_logs/*.log
+workflows:
+  ios-workflow:
+    name: Kidsapp iOS Release
+    max_build_duration: 60
+    instance_type: mac_mini_m1
+    environment:
+      flutter: stable
+      xcode: latest
+      groups:
+        - apple_credentials # Create this group in Codemagic UI and upload your certificates
+      vars:
+        BUNDLE_ID: "com.your.app.id" # Replace with your Bundle ID
+        XCODE_SCHEME: "Runner"
 
-  publishing:
-    email:
-      recipients:
-        - YOUR_EMAIL@EXAMPLE.COM
+    scripts:
+      - name: Set up keychain and fetching signing files
+        script: |
+          keychain initialize
+          # This command fetches certificates automatically if App Store Connect API is linked
+          app-store-connect fetch-signing-files "$BUNDLE_ID" --type IOS_APP_ADHOC --create
+          keychain add-certificates
+      - name: Get Flutter packages
+        script: |
+          flutter pub get
+      - name: Install CocoaPods
+        script: |
+          find . -name "Podfile" -execdir pod install \;
+      - name: Build IPA
+        script: |
+          # This is the command that generates the .ipa file
+          flutter build ipa --release --export-method ad-hoc --build-name=1.0.0 --build-number=1
+
+    artifacts:
+      # This ensures the .ipa file shows up in your build results
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+
+    publishing:
+      email:
+        recipients:
+          - emasandeh@gmail.com 
