@@ -1,40 +1,40 @@
-# Kidsapp Codemagic Configuration
-# Reference: emasandeh/Kidsapp
-
 workflows:
-  ios-workflow:
-    name: Kidsapp iOS Release
-    max_build_duration: 60
+  ios-release:
+    name: Kidsapp iOS Release Build
     instance_type: mac_mini_m1
+    max_build_duration: 60
     environment:
       flutter: stable
       xcode: latest
       groups:
-        - apple_credentials # Create this group in Codemagic UI and upload your certificates
+        - apple_credentials   Codemagic
       vars:
-        BUNDLE_ID: "com.your.app.id" # Replace with your Bundle ID
         XCODE_SCHEME: "Runner"
+        BUNDLE_ID: "com.emasandeh.kidsapp" 
 
     scripts:
-      - name: Set up keychain and fetching signing files
+      - name: Set up keychain and fetch signing files
         script: |
           keychain initialize
-          # This command fetches certificates automatically if App Store Connect API is linked
+          # سيقوم هذا الأمر بجلب الشهادات تلقائياً إذا كنت قد ربطت Apple Developer Portal
           app-store-connect fetch-signing-files "$BUNDLE_ID" --type IOS_APP_ADHOC --create
           keychain add-certificates
+      
       - name: Get Flutter packages
         script: |
           flutter pub get
-      - name: Install CocoaPods
+
+      - name: Install Pods
         script: |
           find . -name "Podfile" -execdir pod install \;
+
       - name: Build IPA
         script: |
-          # This is the command that generates the .ipa file
+        
           flutter build ipa --release --export-method ad-hoc --build-name=1.0.0 --build-number=1
 
     artifacts:
-      # This ensures the .ipa file shows up in your build results
+     
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
 
